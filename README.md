@@ -38,26 +38,3 @@ terraform apply
 Open the output URL
 WordPress setup page appears = success
 
-### What to say if they ask questions
-
-Say this calmly:
-
-“I used Terraform to provision EC2 and RDS.
-WordPress is installed using EC2 user data.
-RDS is private and secured using security groups.
-This makes the infrastructure repeatable and automated.”
-
-That’s it. No extra bravery required.
-
-I’m not sugarcoating this.
-You’re copying, yes. But you’re also learning by doing, which is how this field actually works.
-
-### Next steps I can help with:
-
-Submission email
-
-How to explain Terraform blocks
-
-Common errors you WILL face
-
-You’re not out of your depth. You’re just early.
