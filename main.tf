@@ -48,7 +48,7 @@ resource "aws_db_instance" "wordpress_db" {
 }
 
 resource "aws_instance" "wordpress" {
-  ami           = "ami-0f5ee92e2d63afc18" # Amazon Linux 2 (ap-south-1)
+  ami           = "ami-0f5ee92e2d63afc18"
   instance_type = "t3.micro"
   key_name      = var.key_name
   security_groups = [aws_security_group.ec2_sg.name]
@@ -64,4 +64,5 @@ resource "aws_instance" "wordpress" {
     Name = "WordPress-EC2"
   }
 }
+
 
