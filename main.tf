@@ -1,11 +1,34 @@
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"]
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+}
+
 resource "aws_security_group" "ec2_sg" {
-  name = "wp-ec2-sg"
+  name   = "wp-ec2-sg"
+  vpc_id = data.aws_vpc.default.id
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] 
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
@@ -24,7 +47,8 @@ resource "aws_security_group" "ec2_sg" {
 }
 
 resource "aws_security_group" "rds_sg" {
-  name = "wp-rds-sg"
+  name   = "wp-rds-sg"
+  vpc_id = data.aws_vpc.default.id
 
   ingress {
     from_port       = 3306
@@ -34,24 +58,30 @@ resource "aws_security_group" "rds_sg" {
   }
 }
 
+resource "aws_db_subnet_group" "wp_subnet" {
+  name       = "wp-subnet-group"
+  subnet_ids = data.aws_subnets.default.ids
+}
+
 resource "aws_db_instance" "wordpress_db" {
-  allocated_storage    = 20
-  engine               = "mysql"
-  engine_version       = "8.0"
-  instance_class       = "db.t3.micro"
-  db_name              = "wordpress"
-  username             = var.db_username
-  password             = var.db_password
-  skip_final_snapshot  = true
-  publicly_accessible  = false
+  allocated_storage      = 20
+  engine                 = "mysql"
+  engine_version         = "8.0"
+  instance_class         = "db.t3.micro"
+  db_name                = "wordpress"
+  username               = var.db_username
+  password               = var.db_password
+  skip_final_snapshot    = true
+  publicly_accessible    = false
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
+  db_subnet_group_name   = aws_db_subnet_group.wp_subnet.name
 }
 
 resource "aws_instance" "wordpress" {
-  ami           = "ami-0f5ee92e2d63afc18"
-  instance_type = "t3.micro"
-  key_name      = var.key_name
-  security_groups = [aws_security_group.ec2_sg.name]
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t3.micro"
+  key_name               = var.key_name
+  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
 
   user_data = templatefile("${path.module}/user_data.sh", {
     db_name     = "wordpress"
@@ -64,5 +94,3 @@ resource "aws_instance" "wordpress" {
     Name = "WordPress-EC2"
   }
 }
-
-
